@@ -187,11 +187,11 @@ vagrant provision
   (leading to the message `Daemon not responding yet: dial tcp 192.168.33.X:2376: connection refused`).
   Basically, the vagrant provisioning script patches both vagrant virtual servers.
   You can reuse the content of this script on your production server when you
-  create the associated Docker Machine. For this, you can use the following command:
+  create the associated Docker Machine. For this, you can use the following command:<br>
   `ssh root@$HOST_IP_PROD "bash -s" < ./provisioning.sh`
 
 In this last section, we will finish our configuration of our development and
-pre-production VM by installing Docker Machine and securing their open ports
+pre-production hosts by installing Docker Machine and securing their open ports
 with simple firewall rules. The script that we are using is named `postProvisioning.sh`.
 ```sh
 #!/bin/bash
@@ -324,7 +324,6 @@ development VM:
 ssh root@$HOST_IP_DEV systemctl restart docker
 ssh root@$HOST_IP_PRE systemctl restart docker
 eval "$(docker-machine env dev)"
-docker start registry
 ```
 
 Our final step in the registry management is to login your preproduction VM and
