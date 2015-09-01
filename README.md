@@ -91,8 +91,8 @@ Vagrant.configure(2) do |config|
   hosts.each do |name, ip|
     config.vm.define name do |vm|
       vm.vm.hostname = "%s.example.org" % name
-      vm.vm.network "public_network", bridge: "en0: Wi-Fi (AirPort)", ip: ip
       #vm.vm.network "private_network", ip: ip
+      vm.vm.network "public_network", bridge: "en0: Wi-Fi (AirPort)", ip: ip
       vm.vm.provider "virtualbox" do |v|
         v.name = name
       end
@@ -102,7 +102,7 @@ Vagrant.configure(2) do |config|
 end
 ```
 
-> I've provided 2 network configuration here. The first one is a private network
+> I've provided 2 network configurations here. The first one is a private network
   leading to 2 virtual machines that are not accessible to your local network (
   only your local OSX). The second bridges your local OSX network driver so that
   your container gains public access within your LAN. Note that for both of these
@@ -695,6 +695,9 @@ docker-compose -f deploy-prod.yml run --rm db mongo db:27017/admin --quiet --eva
 ```
 
 ### Links
+Sources for this tutorial:
+* [Github's repository](https://github.com/PEM--/devops-tuts)
+
 Informations used for this tutorial:
 * [Homebrew](http://brew.sh/)
 * [Caskroom](https://github.com/caskroom/homebrew-cask)
