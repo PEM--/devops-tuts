@@ -153,6 +153,9 @@ set -x HOST_IP_PRE '192.168.1.51'
 set -x HOST_IP_PROD 'X.X.X.X'
 ```
 
+This should provide an easy access to all parts of the following network architecture:
+![Network architecture](https://raw.githubusercontent.com/PEM--/devops-tuts/master/doc/network_architecture.png)
+
 Open 3 terminal sessions. In the first session, launch the following commands:
 ```sh
 docker-machine -D create -d generic \
