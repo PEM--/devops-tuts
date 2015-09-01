@@ -5,7 +5,7 @@ infrastructure is a no brainer, things may start to get messy if you need to
 deploy it, secure it and scale it on your cloud. Especially if your customer
 imposes you a specific constraint on cloud sovereignty. The best way to
 achieve easy deployment is using the excellent
-[Meteeor Up](https://github.com/arunoda/meteor-up) tool. But if it fails or
+[Meteor Up](https://github.com/arunoda/meteor-up) tool. But if it fails or
 if you need to go a bit further in your infrastructure deployment,
 I recommend that you start using [Docker](https://www.docker.com/) to get
 familiar with this handy DevOps tool.
@@ -28,6 +28,8 @@ the complete list of versions used in this tutorial:
 * NGinx 1.9.4-1
 * NodeJS 0.10.40
 * Mongo 3.0.6 - WiredTiger
+
+![Software architecture](https://raw.githubusercontent.com/PEM--/devops-tuts/master/doc/software_architecture.png)
 
 > Why Debian Jessie instead of Debian Wheezie? Simple, a 30 MB of footprint.
   Note that we could have set this tutorial on other even smaller Linux
