@@ -174,7 +174,7 @@ docker-machine -D create -d generic \
   pre
 ```
 
-Now, in the last session, wait for the 2 previous session to be blocked
+Now, in the last session, wait for the 2 previous sessions to be blocked
 on the following repeated message
 `Daemon not responding yet: dial tcp 192.168.33.10:2376: connection refused`
 and issue the following command:

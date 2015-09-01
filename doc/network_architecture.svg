@@ -18,8 +18,8 @@
    inkscape:version="0.91 r13725"
    sodipodi:docname="network_architecture.svg"
    inkscape:export-filename="/Users/PEM/Projects/devops-tuts/doc/network_architecture.png"
-   inkscape:export-xdpi="54.360001"
-   inkscape:export-ydpi="54.360001">
+   inkscape:export-xdpi="90.012779"
+   inkscape:export-ydpi="90.012779">
   <defs
      id="defs4" />
   <sodipodi:namedview
@@ -30,7 +30,7 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1.2443217"
-     inkscape:cx="255.92666"
+     inkscape:cx="84.749062"
      inkscape:cy="115.31392"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
@@ -62,7 +62,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
