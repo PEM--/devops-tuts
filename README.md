@@ -281,6 +281,15 @@ ssh root@$HOST_IP_PROD "bash -s" < ./postProvisioning.sh
 ```
 
 ### Creating your own registry
+Basically, what we want to achieve is micro-services oriented to stick to
+a multi-tiers architecture:
+![Docker architecture](https://raw.githubusercontent.com/PEM--/devops-tuts/master/doc/docker_architecture.png)
+
+This architecture could then be spread over a Docker Swarm of multiple servers
+or kept on a single one. But playing with multiple containers in development
+is quickly a pain. We can leverage the power of Docker Compose and a local
+registry to fasten our development of Docker images.
+
 In your first terminal session, activate your development Docker Machine:
 ```sh
 eval "$(docker-machine env dev)"
