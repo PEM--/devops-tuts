@@ -179,7 +179,7 @@ and issue the following command:
 vagrant provision
 ```
 
-> **What's going on here?**: Actually, the current state of Docker for Ubuntu 15.04
+> **What's going on here?** Actually, the current state of Docker for Ubuntu 15.04
   doesn't support `DOCKER_OPTS`. This is due to the transition in Ubuntu from
   **upstart** to **Systemd**. Plus, when we are creating our Docker Machine in
   our local OSX, Docker Machine re-install Docker on the host. Thus, we end up
