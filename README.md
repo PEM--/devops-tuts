@@ -448,9 +448,9 @@ db:
 Before building or launching this Docker image, we need to prepare the
 volume on each host that receives and persists Mongo's data:
 ```sh
-ssh root@$HOST_IP_DEV "mkdir /var/db; chmod go+w /var/db"
-ssh root@$HOST_IP_PRE "mkdir /var/db; chmod go+w /var/db"
-ssh root@$HOST_IP_PROD "mkdir /var/db; chmod go+w /var/db"
+ssh root@$HOST_IP_DEV "rm -rf /var/db; mkdir /var/db; chmod go+w /var/db"
+ssh root@$HOST_IP_PRE "rm -rf /var/db; mkdir /var/db; chmod go+w /var/db"
+ssh root@$HOST_IP_PROD "rm -rf /var/db; mkdir /var/db; chmod go+w /var/db"
 ```
 
 For building our Mongo Docker image:
@@ -547,9 +547,9 @@ Now copy your `settings.json` files on each hosts using a regular SCP. Mine
 are slightly different depending on the target where I deploy my Meteor apps.
 ```sh
 # Just an exammple, adapt it to suit your needs
-scp ../app/development.json root@$HOST_IP_DEV:/etc/meteor
-scp ../app/development.json root@$HOST_IP_DEV:/etc/meteor
-scp ../app/production.json root@$HOST_IP_DEV:/etc/meteor
+scp ../app/development.json root@$HOST_IP_DEV:/etc/meteor/settings.json
+scp ../app/development.json root@$HOST_IP_DEV:/etc/meteor/settings.json
+scp ../app/production.json root@$HOST_IP_DEV:/etc/meteor/settings.json
 ```
 
 > Note that we do not include our secrets, nor in our code repository by
@@ -598,6 +598,8 @@ server:
     MONGO_OPLOG_URL: "mongodb://db:27017/local"
     PORT: 3000
     ROOT_URL: "https://192.168.1.50"
+  volumes:
+    - /etc/meteor:/etc/meteor
   expose:
     - "3000"
 ```

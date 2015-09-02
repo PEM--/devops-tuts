@@ -30,6 +30,7 @@ RUN curl -sSLO "https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION-linux
 RUN npm install -g pm2 phantomjs
 
 # Import sources
+RUN mkdir /app
 COPY bundle /app
 
 # Install Meteor's dependencies
@@ -37,5 +38,5 @@ WORKDIR /app
 RUN (cd programs/server && npm install)
 
 # Launch application
-COPY startMeteor.sh /app
+COPY startMeteor.sh /app/
 CMD ["./startMeteor.sh"]
