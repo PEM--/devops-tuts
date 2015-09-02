@@ -433,9 +433,10 @@ net:
 We could build this image and run it, but I prefer using a Docker Compose file.
 These file eases the process of build, run and deploys of your Docker images
 acting as a project file when multiple Docker images are required to work
-together for an application. Here's the minimal `docker-compose.yml` that we
-will enrich in the next steps of this tutorial:
+together for an application. Here's the minimal `docker/docker-compose.yml`
+that we will enrich in the next steps of this tutorial:
 ```yml
+# Persistence layer: Mongo
 db:
   build: mongo
   volumes:
@@ -554,10 +555,40 @@ scp ../app/production.json root@$HOST_IP_DEV:/etc/meteor
 > Note that we do not include our secrets, nor in our code repository by
   using a `.gitgignore` file, nor in our Docker Images.
 
-As you can see it in this `docker/meteor/Dockerfile`, we still need some
+We import our Meteor sources using a shared script `docker/buildMeteor.sh` for
+the Meteor container and the NGinx container:
+```sh
+#!/bin/bash
+rm -rf meteor/bundle nginx/bundle
+cd ../app
+meteor build --architecture os.linux.x86_64 --directory ../docker/meteor
+cd -
+cp -R meteor/bundle nginx
+```
+In order to avoid importing too much files in our Docker image, we create
+a `docker/meteor/.dockerignore` file which removes the parts dedicated to
+the clients wich will be serverd by NGinx:
+```sh
+bundle/README
+bundle/packages/*/.build*
+bundle/packages/*/.styl
+bundle/*/*.md*
+bundle/programs/web.browser/app
+```
 
+Our last required file is a script `docker/meteor/startMeteor.sh` for starting
+Meteor with the private settings that we add as a specific volume:
+```sh
+#!/bin/bash
+METEOR_SETTINGS=$(cat /etc/meteor/settings.json) pm2 start -s --no-daemon --no-vizion main.js
+```
 
-For building and launching, we are extending our `docker-compose.yml` file:
+> Note that we launch Meteor with [PM2](https://github.com/Unitech/pm2). As we
+  will see it, it's not a mandatory step as we are using Docker's restart
+  policy in our Docker images. However this process management utility could be
+  used to get some metrics on NodeJS's status.
+
+For building and launching, we are extending our `/docker/docker-compose.yml` file:
 ```yml
 # Application server: NodeJS (Meteor)
 server:
@@ -571,11 +602,14 @@ server:
     - "3000"
 ```
 
-
-
+For building and launching our Meteor Docker image:
+```sh
+docker-compose up -d db server
+```
 
 ### Building NGinx
 
+@TODO
 
 Create your self signed certificate for development and preproduction hosts:
 ```sh
