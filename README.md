@@ -31,11 +31,11 @@ the complete list of versions used in this tutorial:
 
 ![Software architecture](https://raw.githubusercontent.com/PEM--/devops-tuts/master/doc/software_architecture.png)
 
-> Why Debian Jessie instead of Debian Wheezie? Simple, a 30 MB of footprint.
-  Note that we could have set this tutorial on other even smaller Linux
-  distributions for our Docker Images, like Alpine Linux. But as time of
-  this writing, other smaller distributions do not offer the package required
-  for installing Meteor.
+> Why Debian Jessie instead of Debian Wheezie? Simple, a gain of 30MB of
+  footprint. Note that we could have set this tutorial on other even smaller
+  Linux distributions for our Docker Images, like Alpine Linux. But as time of
+  this writing, these smaller distributions do not offer the package required
+  for installing Meteor (namely, MongoDB and node-fibers).
 
 ### Installing the tooling
 If you have never done it before install Homebrew and its plugin Caskroom.
@@ -105,7 +105,7 @@ end
 > I've provided 2 network configurations here. The first one is a private network
   leading to 2 virtual machines that are not accessible to your local network (
   only your local OSX). The second bridges your local OSX network driver so that
-  your container gains public access within your LAN. Note that for both of these
+  your VMs gain public access within your LAN. Note that for both of these
   network configurations, I've used static IPs.
 
 Before creating our virtual machine, we need to setup a `provisioning.sh`:
@@ -135,9 +135,9 @@ Now, we are starting our virtual hosts and declare it as a Docker Machine:
 vagrant up --no-provision
 ```
 
-Throughout this terminal, we need some environment variables, we store them
-in a `local_env.sh` file that we fill step by step and source each time we
-open a new terminal session:
+Throughout this terminal sessions, we need some environment variables.
+We store them in a `local_env.sh` file that we fill step by step and source
+each time we open a new terminal session:
 ```sh
 export HOST_IP_DEV='192.168.1.50'
 export HOST_IP_PRE='192.168.1.51'
@@ -533,9 +533,43 @@ COPY startMeteor.sh /app/startMeteor.sh
 CMD ["./startMeteor.sh"]
 ```
 
-@TODO
+Before building this Docker image, we need to prepare the
+volume on each host that receives its `settings.json` used for storing your
+secrets in Meteor:
+```sh
+ssh root@$HOST_IP_DEV "mkdir /etc/meteor"
+ssh root@$HOST_IP_PRE "mkdir /etc/meteor"
+ssh root@$HOST_IP_PROD "mkdir /etc/meteor"
+```
 
-- Settings without importing them
+Now copy your `settings.json` files on each hosts using a regular SCP. Mine
+are slightly different depending on the target where I deploy my Meteor apps.
+```sh
+# Just an exammple, adapt it to suit your needs
+scp ../app/development.json root@$HOST_IP_DEV:/etc/meteor
+scp ../app/development.json root@$HOST_IP_DEV:/etc/meteor
+scp ../app/production.json root@$HOST_IP_DEV:/etc/meteor
+```
+
+> Note that we do not include our secrets, nor in our code repository by
+  using a `.gitgignore` file, nor in our Docker Images.
+
+As you can see it in this `docker/meteor/Dockerfile`, we still need some
+
+
+For building and launching, we are extending our `docker-compose.yml` file:
+```yml
+# Application server: NodeJS (Meteor)
+server:
+  build: meteor
+  environment:
+    MONGO_URL: "mongodb://db:27017"
+    MONGO_OPLOG_URL: "mongodb://db:27017/local"
+    PORT: 3000
+    ROOT_URL: "https://192.168.1.50"
+  expose:
+    - "3000"
+```
 
 
 

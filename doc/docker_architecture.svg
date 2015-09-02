@@ -154,9 +154,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.4"
-     inkscape:cx="261.51246"
-     inkscape:cy="168.5843"
+     inkscape:zoom="3.959798"
+     inkscape:cx="283.71921"
+     inkscape:cy="121.32034"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="true"
@@ -209,7 +209,9 @@
        height="267.46225"
        width="399.9072"
        id="rect6942"
-       style="opacity:1;fill:#6598ff;fill-opacity:0.19607843;stroke:#003399;stroke-width:0.99999994" />
+       style="opacity:1;fill:#6598ff;fill-opacity:0.19607843;stroke:#003399;stroke-width:0.99999994"
+       inkscape:export-xdpi="137"
+       inkscape:export-ydpi="137" />
     <rect
        ry="8.3752298"
        rx="8.3752298"
@@ -1093,6 +1095,30 @@
            id="tspan4822"
            x="-477.27246"
            y="146.33432">443:443</tspan></text>
+    </g>
+    <g
+       id="g4327"
+       transform="translate(130,0)">
+      <rect
+         transform="matrix(0,-1,1,0,0,0)"
+         y="140"
+         x="-502.3623"
+         height="10"
+         width="50"
+         id="rect4329"
+         style="opacity:1;fill:#003399;fill-opacity:1;stroke:#003399;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0" />
+      <text
+         transform="matrix(0,-1,1,0,0,0)"
+         sodipodi:linespacing="125%"
+         id="text4331"
+         y="146.33432"
+         x="-477.27246"
+         style="font-style:normal;font-weight:normal;font-size:4.125px;line-height:125%;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;"
+         xml:space="preserve"><tspan
+           y="146.33432"
+           x="-477.27246"
+           id="tspan4333"
+           sodipodi:role="line">/etc/meteor:/etc/meteor</tspan></text>
     </g>
   </g>
   <style
