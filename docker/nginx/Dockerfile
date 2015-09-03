@@ -40,7 +40,7 @@ COPY  bundle/programs/web.browser/*.js \
       bundle/programs/web.browser/app \
       /www/
 
-# Ensure proper rights on statis assets
+# Ensure proper rights on static assets
 RUN chown -R www:www /www /var/cache /var/tmp
 
 # Launch NGinx

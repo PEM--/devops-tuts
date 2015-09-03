@@ -654,7 +654,7 @@ COPY  bundle/programs/web.browser/*.js \
       bundle/programs/web.browser/app \
       /www/
 
-# Ensure proper rights on statis assets
+# Ensure proper rights on static assets
 RUN chown -R www:www /www /var/cache /var/tmp
 
 # Launch NGinx
@@ -663,33 +663,86 @@ RUN chmod u+x /startNginx.sh
 CMD ["/startNginx.sh"]
 ```
 
+Like the Meteor container, we are using the same import script. This time,
+we remove the server part of our container using the same technic in the
+`docker/nginx/.dockerignore`:
+```sh
+bundle/README
+bundle/packages/*/.build*
+bundle/packages/*/.styl
+bundle/*/*.md*
+bundle/programs/server
+```
 
-@TODO
+For building it, we enhance pour `docker/docker-compose.yml` file:
+```yml
+# Front layer, static file, SSL, proxy cache: NGinx
+front:
+  build: nginx
+  links:
+    - server
+  environment:
+    # Can be: dev, pre, prod
+    HOST_TARGET: "dev"
+  volumes:
+    - /etc/certs:/etc/certs
+    - /var/cache:/var/cache
+    - /var/tmp:/var/tmp
+  ports:
+    - "80:80"
+    - "443:443"
+```
 
-Create your self signed certificate for development and preproduction hosts:
+Our NGinx requires certificates set on the hosts in `/etc/certs`. For the
+production host, you require SSL certificates from a certificate authority
+know by the browser vendors. For the development and the preproduction hosts,
+we can use self signed certificate that we create on our hosts:
 ```sh
 ssh root@$HOST_IP_DEV "mkdir -p /etc/certs; openssl req -nodes -new -x509 -keyout /etc/certs/server.key -out /etc/certs/server.cert -subj '/C=FR/ST=Paris/L=Paris/CN=$HOST_IP_DEV'"
 ssh root@$HOST_IP_PRE "mkdir -p /etc/certs; openssl req -nodes -new -x509 -keyout /etc/certs/server.key -out /etc/certs/server.cert -subj '/C=FR/ST=Paris/L=Paris/CN=$HOST_IP_PRE'"
 ```
 
-@TODO volumes
+We need 2 additional volumes exposed on each host, one for NGinx's cache and
+another one for NGinx temporary files:
 ```sh
-ssh root@192.168.1.50 "mkdir /var/cache; chmod go+w /var/cache"
-ssh root@192.168.1.50 "mkdir /var/tmp; chmod go+w /var/tmp"
-
-ssh root@192.168.1.51 "mkdir /var/cache; chmod go+w /var/cache"
-ssh root@192.168.1.51 "mkdir /var/tmp; chmod go+w /var/tmp"
-
-ssh root@X.X.X.X "mkdir /var/cache; chmod go+w /var/cache"
-ssh root@X.X.X.X "mkdir /var/tmp; chmod go+w /var/tmp"
+ssh root@$HOST_IP_DEV "mkdir /var/cache; chmod go+w /var/cache; mkdir /var/tmp; chmod go+w /var/tmp"
+ssh root@$HOST_IP_PRE "mkdir /var/cache; chmod go+w /var/cache; mkdir /var/tmp; chmod go+w /var/tmp"
+ssh root@$HOST_IP_PROD "mkdir -p /etc/certs; mkdir /var/cache; chmod go+w /var/cache; mkdir /var/tmp; chmod go+w /var/tmp"
 ```
 
-Volumes + chmod
-    - /var/cache:/var/cache
-    - /var/tmp:/var/tmp
+In our Docker Container, we have already imported the static part of our Meteor
+app. Our NGinx server will also act as a static file server in HTTP and in HTTPS.
+While serving HTTP file for our Meteor application has no interest, it could be
+usefull to expose some static assets without protection (this is sometime required
+by SSL certificate provider). Simply put your static assets in the `docker/nginx/raw`
+folder for that.
+
+Depending on which host NGinx is launched, we need a method to set a proper
+sever name. For this, we create 3 files:
+
+* `docker/nginx/host-specific/servername-dev.conf`:
+  ```conf
+  # Server name
+  server_name  192.168.1.50;
+  ```
+* `docker/nginx/host-specific/servername-pre.conf`:
+  ```conf
+  # Server name
+  server_name  192.168.1.51;
+  ```
+* `docker/nginx/host-specific/servername-prod.conf`:
+  ```conf
+  # Server name (the real FQDN of your production server)
+  server_name  example.org;
+  ```
+
+
 
 
 @TODO
+
+
+Proxy cache
 
 - Rework the case of separation in the import (server vs web.app stuff)
 - Cache NodeJS Meteor response (other HTML + CSS + JS)
