@@ -358,7 +358,7 @@ docker login
 ### Building Mongo
 Our `mongo/Dockerfile` is based on Mongo's official one. It adds to the
 picture the configuration of small ReplicaSet for making OPLOG available:
-```sh
+```Dockerfile
 # Based on: https://github.com/docker-library/mongo/blob/d5aca073ca71a7023e0d4193bd14642c6950d454/3.0/Dockerfile
 FROM debian:wheezy
 MAINTAINER Pierre-Eric Marchandet <pemarchandet@gmail.com>
@@ -490,7 +490,7 @@ docker rmi (docker images -f "dangling=true" -q)
 ### Building Meteor
 Meteor is fairly easy to build. It's a simple NodeJS app. We start by creating
 our `docker/meteor/Dockerfile`:
-```sh
+```Dockerfile
 # Based on: https://github.com/joyent/docker-node/blob/master/0.10/wheezy/Dockerfile
 FROM debian:wheezy
 MAINTAINER Pierre-Eric Marchandet <pemarchandet@gmail.com>
