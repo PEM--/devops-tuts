@@ -965,15 +965,94 @@ docker-compose up -d
 
 You should now have a full development host.
 
-### Launching or refreshing your application
+### Application logging
+When launching, stopping, refreshing our services, Docker produces a log
+for each container that you can easily access in your CLI:
+```sh
+docker-compose logs
+# Or only for the db
+docker-compose logs db
+# Or only for the server
+docker-compose logs server
+# Or only for the server and the front...
+docker-compose logs server front
+# ...
+```
+
+As you can see it, it can start to be a bit verbose. Still, you can inspect
+any Docker container log with a tail like this:
+```sh
+$ docker ps
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                                      NAMES
+82a7489e41a0        docker_front        "/startNginx.sh"         4 hours ago         Up 4 hours          0.0.0.0:80->80/tcp, 0.0.0.0:443->443/tcp   docker_front_1
+4b0656669213        docker_server       "./startMeteor.sh"       27 hours ago        Up 4 hours          3000/tcp                                   docker_server_1
+fe6a7238328a        docker_db           "mongod -f /etc/mongo"   45 hours ago        Up 4 hours          27017/tcp                                  docker_db_1
+1a878c646094        registry:2          "/bin/registry /etc/d"   46 hours ago        Up 46 hours         0.0.0.0:5000->5000/tcp                     docker_registry_1
+
+$ docker logs --tail 4 -f docker_db_1
+2015-09-03T12:20:49.298+0000 I NETWORK  [initandlisten] connection accepted from 172.17.0.64:49051 #22 (18 connections now open)
+2015-09-03T12:20:49.314+0000 I NETWORK  [initandlisten] connection accepted from 172.17.0.64:49052 #23 (19 connections now open)
+2015-09-03T12:20:49.315+0000 I NETWORK  [initandlisten] connection accepted from 172.17.0.64:49053 #24 (20 connections now open)
+2015-09-03T16:36:13.666+0000 I QUERY    [conn10] g...
+```
+
+Docker logs are not regular `/var/log` entries. They are specific to each ones of
+your container. There's an important risk to fill up your disk pretty fast depending
+on you log usages. Fortunately, since Docker 1.8, specific log driver can be added
+to our running container. We are using `logrotate` here but you could setup a
+specific server for an [ELK stack](https://www.elastic.co/webinars/introduction-elk-stack)
+or any other of your favorite log solution. For configuring our `logrotate` on
+each host, add a new configuration for Docker:
+```sh
+ssh root@$HOST_IP_DEV "echo -e '/var/lib/docker/containers/*/*.log {  \n  rotate 7\n  daily\n  compress\n  size=1M\n  missingok\n  delaycompress\n  copytruncate\n}' > /etc/logrotate.d/docker"
+ssh root@$HOST_IP_PRE "echo -e '/var/lib/docker/containers/*/*.log {  \n  rotate 7\n  daily\n  compress\n  size=1M\n  missingok\n  delaycompress\n  copytruncate\n}' > /etc/logrotate.d/docker"
+ssh root@$HOST_IP_PROD "echo -e '/var/lib/docker/containers/*/*.log {  \n  rotate 7\n  daily\n  compress\n  size=1M\n  missingok\n  delaycompress\n  copytruncate\n}' > /etc/logrotate.d/docker"
+```
+
+Now, we are updating our `docker/docker-compose.yml` and set our Docker
+containers to use the json-file log driver so that it doesn't stay buried
+in `/var/lib/docker/containers/[CONTAINER ID]/[CONTAINER_ID]-json.log`:
+```yml
+# Persistence layer: Mongo
+db:
+  build: mongo
+  volumes:
+    - /var/db:/db
+  expose:
+    - "27017"
+  log_driver: "json-file"
+# Application server: NodeJS (Meteor)
+server:
+  build: meteor
+  environment:
+    MONGO_URL: "mongodb://db:27017"
+    MONGO_OPLOG_URL: "mongodb://db:27017/local"
+    PORT: 3000
+    ROOT_URL: "https://192.168.1.50"
+  volumes:
+    - /etc/meteor:/etc/meteor
+  expose:
+    - "3000"
+  log_driver: "json-file"
+# Front layer, static file, SSL, proxy cache: NGinx
+front:
+  build: nginx
+  links:
+    - server
+  environment:
+    # Can be: dev, pre, prod
+    HOST_TARGET: "dev"
+  volumes:
+    - /etc/certs:/etc/certs
+    - /var/cache:/var/cache
+    - /var/tmp:/var/tmp
+  ports:
+    - "80:80"
+    - "443:443"
+  log_driver: "json-file"
+```
+
 @TODO
-
-Logdriver
-https://docs.docker.com/reference/logging/overview/#the-json-file-options
-https://sandro-keil.de/blog/2015/03/11/logrotate-for-docker-container/
-
-
-- docker-compose common + déploiement
 
 ### Mongo backups
 @TODO
