@@ -723,7 +723,7 @@ We now need the configuration files our front. This configuration is mostly
 forked and customized from [HTML5's boilerplate for NGinx servers](https://github.com/h5bp/server-configs-nginx).
 I will not explained all of them, simply the interesting parts that Meteor
 and our multi hosts configuration require. Our entry points is `docker/nginx/nginx.conf`.
-```conf
+```sh
 # Run as a less privileged user for security reasons.
 user www www;
 # How many worker threads to run;
@@ -820,21 +820,37 @@ Depending on which host launches NGinx, we need a method to set a proper
 sever name. For this, we create 3 files:
 
 * `docker/nginx/host-specific/servername-dev.conf`:
-  ```conf
+  ```sh
   # Server name
   server_name  192.168.1.50;
   ```
 * `docker/nginx/host-specific/servername-pre.conf`:
-  ```conf
+  ```sh
   # Server name
   server_name  192.168.1.51;
   ```
 * `docker/nginx/host-specific/servername-prod.conf`:
-  ```conf
+  ```sh
   # Server name (the real FQDN of your production server)
   server_name  example.org;
   ```
 
+For accessing the static files exposed over HTTP, we use simply declare the root
+of the front and we use a `@fallback` function in case no file has been found.
+This is declared in the `docker/nginx/staticfile-with-fallback.conf`:
+```sh
+# Serve static file and use a fallback otherwise
+location / {
+  charset utf-8;
+  root /www;
+  # Basic rules
+  include conf/basic.conf;
+  # Try static files and redirect otherwise
+  try_files $uri @fallback;
+  # Expiration rules
+  include conf/expires.conf;
+}
+```
 
 
 @TODO
