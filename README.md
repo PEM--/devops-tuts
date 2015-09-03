@@ -946,10 +946,24 @@ upstream server {
 }
 ```
 
+For directing our NGinx on the appropriate configuration, we use an
+simple environment variables `HOST_TARGET` that can be `dev`, `pre` or
+`prod` and a script `docker/nginx/startNginx.sh` for using this variable:
+```sh
+#!/bin/bash
+if [ ! -f /etc/nginx/conf/servername.conf ]
+then
+  ln -s /etc/nginx/conf/servername-$HOST_TARGET.conf /etc/nginx/conf/servername.conf
+fi
+nginx -g "daemon off;"
+```
 
+Like before for the other containers, we build it and launch it with:
+```sh
+docker-compose up -d
+```
 
-@TODO
-startNginx.sh
+You should now have a full development host.
 
 ### Launching or refreshing your application
 @TODO
