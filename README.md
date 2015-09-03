@@ -717,9 +717,106 @@ folder for that.
 
 > While serving HTTP file for our Meteor application has no interest, it could be
   usefull to expose some static assets without protection (this is sometime required
-  by SSL certificate provider). 
+  by SSL certificate provider).
 
-Depending on which host NGinx is launched, we need a method to set a proper
+We now need the configuration files our front. This configuration is mostly
+forked and customized from [HTML5's boilerplate for NGinx servers](https://github.com/h5bp/server-configs-nginx).
+I will not explained all of them, simply the interesting parts that Meteor
+and our multi hosts configuration require. Our entry points is `docker/nginx/nginx.conf`.
+```conf
+# Run as a less privileged user for security reasons.
+user www www;
+# How many worker threads to run;
+# The maximum number of connections for Nginx is calculated by:
+# max_clients = worker_processes * worker_connections
+worker_processes 1;
+# Maximum open file descriptors per process;
+# should be > worker_connections.
+worker_rlimit_nofile 8192;
+events {
+  # When you need > 8000 * cpu_cores connections, you start optimizing your OS,
+  # and this is probably the point at which you hire people who are smarter than
+  # you, as this is *a lot* of requests.
+  worker_connections 8000;
+}
+# Default error log file
+# (this is only used when you don't override error_log on a server{} level)
+error_log  /var/log/nginx/error.log warn;
+pid        /var/run/nginx.pid;
+# Main configuration
+http {
+  # Hide nginx version information.
+  server_tokens off;
+  # Proxy cache definition
+  proxy_cache_path /var/cache/nginx levels=1:2 keys_zone=one:8m max_size=3000m inactive=600m;
+  proxy_temp_path /var/tmp;
+  # Define the MIME types for files.
+  include conf/mimetypes.conf;
+  default_type application/octet-stream;
+  # Update charset_types due to updated mime.types
+  charset_types text/xml text/plain text/vnd.wap.wml application/x-javascript application/rss+xml text/css application/javascript application/json;
+  # Format to use in log files
+  log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                    '$status $body_bytes_sent "$http_referer" '
+                    '"$http_user_agent" "$http_x_forwarded_for"';
+  # Default log file
+  # (this is only used when you don't override access_log on a server{} level)
+  access_log /var/log/nginx/access.log main;
+  # How long to allow each connection to stay idle; longer values are better
+  # for each individual client, particularly for SSL, but means that worker
+  # connections are tied up longer. (Default: 65)
+  keepalive_timeout 20;
+  # Speed up file transfers by using sendfile() to copy directly
+  # between descriptors rather than using read()/write().
+  sendfile        on;
+  # Tell Nginx not to send out partial frames; this increases throughput
+  # since TCP frames are filled up before being sent out. (adds TCP_CORK)
+  tcp_nopush      on;
+  # GZip Compression
+  include conf/gzip.conf;
+  # Error pages redirections
+  error_page 404 /404.html;
+  error_page 500 502 503 504  /50x.html;
+  # HTTP server
+  server {
+    # Server name
+    include conf/servername.conf;
+    # Protocol HTTP
+    listen [::]:80 ipv6only=on;
+    listen 80;
+    # Static files with fallback to HTTPS redirect
+    include conf/staticfile-with-fallback.conf;
+    # Redirect non-SSL to SSL
+    location @fallback {
+      rewrite  ^ https://$server_name$request_uri? permanent;
+    }
+  }
+  # Upstream server for the web application server and load balancing
+  include conf/upstream-server-and-load-balancing.conf;
+  # Upgrade proxy web-socket connections
+  include conf/websocket-upgrade.conf;
+  # HTTPS server
+  server {
+    # Server name
+    include conf/servername.conf;
+    # Protocols HTTPS, SSL, SPDY
+    listen [::]:443 ipv6only=on ssl spdy;
+    listen 443 ssl spdy;
+    # SSL configuration
+    include conf/ssl.conf;
+    # SPDY configuration
+    include conf/spdy.conf;
+    # Static files with fallback to proxy server
+    include conf/staticfile-with-fallback.conf;
+    # Proxy pass to server node with websocket upgrade
+    location @fallback {
+      include conf/proxy-pass-and-cache.conf;
+    }
+  }
+}
+```
+
+Depending on which host launches NGinx, we need a method to set a proper
 sever name. For this, we create 3 files:
 
 * `docker/nginx/host-specific/servername-dev.conf`:
@@ -740,23 +837,8 @@ sever name. For this, we create 3 files:
 
 
 
-
 @TODO
-
-
-Proxy cache
-
-- Rework the case of separation in the import (server vs web.app stuff)
-- Cache NodeJS Meteor response (other HTML + CSS + JS)
-- 404, 50X
-- Stop form spamming
-- https://www.tollmanz.com/http2-nghttp2-nginx-tls/
-
-- Case of the development version (self signed certificate)
-- Case of a bought certificate + verification text
-- Proxy HTTP for one file, rewrite for HTTP to HTTPS
-
-
+startNginx.sh
 
 ### Launching or refreshing your application
 @TODO
@@ -914,6 +996,7 @@ Informations used for this tutorial:
 * [Docker: Containers for the Masses -- using Docker](http://patg.net/containers,virtualization,docker/2014/06/10/using-docker/)
 * [How To Create an SSL Certificate on Nginx for Ubuntu 14.04](https://www.digitalocean.com/community/tutorials/how-to-create-an-ssl-certificate-on-nginx-for-ubuntu-14-04)
 * [SSL and Meteor.js](http://joshowens.me/ssl-and-meteor-js/?utm_content=buffera7818&utm_medium=social&utm_source=twitter.com&utm_campaign=buffer)
+* [HTML5's boilerplate for NGinx servers](https://github.com/h5bp/server-configs-nginx)
 
 Going further:
 * [Deploying HTTP/2 and Strong TLS with Nghttp2 and Nginx](https://www.tollmanz.com/http2-nghttp2-nginx-tls/)
