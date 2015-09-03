@@ -711,11 +711,13 @@ ssh root@$HOST_IP_PROD "mkdir -p /etc/certs; mkdir /var/cache; chmod go+w /var/c
 ```
 
 In our Docker Container, we have already imported the static part of our Meteor
-app. Our NGinx server will also act as a static file server in HTTP and in HTTPS.
-While serving HTTP file for our Meteor application has no interest, it could be
-usefull to expose some static assets without protection (this is sometime required
-by SSL certificate provider). Simply put your static assets in the `docker/nginx/raw`
+app that will be exposed through HTTPS. Our NGinx server will also act as a
+static file server in HTTP.Simply put your static assets in the `docker/nginx/raw`
 folder for that.
+
+> While serving HTTP file for our Meteor application has no interest, it could be
+  usefull to expose some static assets without protection (this is sometime required
+  by SSL certificate provider). 
 
 Depending on which host NGinx is launched, we need a method to set a proper
 sever name. For this, we create 3 files:
