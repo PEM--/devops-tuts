@@ -852,6 +852,101 @@ location / {
 }
 ```
 
+In our HTTP part of our main configuration, you can see that the trafic is
+redirected to HTTPS via URL rewriting technic. Our SSL configuration
+`docker/nginx/conf/ssl.conf` uses the exposed Docker Volume `/etc/certs`:
+```sh
+# SSL configuration
+ssl on;
+# SSL key paths
+ssl_certificate /etc/certs/server.cert;
+ssl_certificate_key /etc/certs/server.key;
+# Trusted cert must be made up of your intermediate certificate followed by root certificate
+# ssl_trusted_certificate /path/to/ca.crt;
+# Optimize SSL by caching session parameters for 10 minutes. This cuts down on the number of expensive SSL handshakes.
+# The handshake is the most CPU-intensive operation, and by default it is re-negotiated on every new/parallel connection.
+# By enabling a cache (of type "shared between all Nginx workers"), we tell the client to re-use the already negotiated state.
+# Further optimization can be achieved by raising keepalive_timeout, but that shouldn't be done unless you serve primarily HTTPS.
+ssl_session_cache shared:SSL:10m; # a 1mb cache can hold about 4000 sessions, so we can hold 40000 sessions
+ssl_session_timeout 1m;
+# Use a higher keepalive timeout to reduce the need for repeated handshakes
+keepalive_timeout 300; # up from 75 secs default
+# Protect against the BEAST and POODLE attacks by not using SSLv3 at all. If you need to support older browsers (IE6) you may need to add
+# SSLv3 to the list of protocols below.
+ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+# Ciphers set to best allow protection from Beast, while providing forwarding secrecy, as defined by Mozilla (Intermediate Set)
+# - https://wiki.mozilla.org/Security/Server_Side_TLS#Nginx
+ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:AES:CAMELLIA:DES-CBC3-SHA:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!aECDH:!EDH-DSS-DES-CBC3-SHA:!EDH-RSA-DES-CBC3-SHA:!KRB5-DES-CBC3-SHA;
+ssl_prefer_server_ciphers on;
+ssl_session_cache shared:SSL:10m;
+# OCSP stapling...
+ssl_stapling on;
+ssl_stapling_verify on;
+# DNS resolution on Google's DNS and DynDNS
+resolver 8.8.8.8 8.8.4.4 216.146.35.35 216.146.36.36 valid=60s;
+resolver_timeout 2s;
+# HSTS (HTTP Strict Transport Security)
+# This header tells browsers to cache the certificate for a year and to connect exclusively via HTTPS.
+add_header Strict-Transport-Security "max-age=31536000;";
+# This version tells browsers to treat all subdomains the same as this site and to load exclusively over HTTPS
+#add_header Strict-Transport-Security "max-age=31536000; includeSubdomains;";
+add_header X-Frame-Options DENY;
+```
+
+We have also added SPDY to our HTTPS configuration in the `docker/nginx/conf/spdy.conf`:
+```sh
+# SPDY configuration
+add_header Alternate-Protocol  443:npn-spdy/3;
+# Adjust connection keepalive for SPDY clients:
+spdy_keepalive_timeout 300; # up from 180 secs default
+# enable SPDY header compression
+spdy_headers_comp 9;
+```
+
+> HTTP/2 support is on its way. When integrated to NGinx, this configuration will
+  be upgraded for taking advantage of it.
+
+No that SSL and SPDY are set, we can serve the static file exposed via HTTPS with
+the same configuration as before for HTTP. But this time, the fallback mecanism
+redirect the trafic to our Meteor application (our server container).
+If no static file is found, the trafic is send to our Meteor application using a
+proxy with cache:
+```
+proxy_http_version 1.1;
+proxy_pass http://server;
+proxy_headers_hash_max_size 1024;
+proxy_headers_hash_bucket_size 128;
+proxy_redirect off;
+# Upgrade proxy web-socket connections
+proxy_set_header Upgrade $http_upgrade; # allow websockets
+proxy_set_header Connection $connection_upgrade;
+proxy_set_header X-Forward-Proto http;
+proxy_set_header Host $http_host;
+proxy_set_header X-Real-IP $remote_addr;
+proxy_set_header X-Forward-For $proxy_add_x_forwarded_for;
+proxy_set_header X-Forward-Proto http;
+proxy_set_header X-Nginx-Proxy true;
+proxy_cache one;
+proxy_cache_key prj$request_uri$scheme;
+proxy_cache_bypass $http_upgrade;
+# Expiration rules
+if ($uri != '/') {
+  expires 30d;
+}
+```
+
+Our proxy cache needs to upgrade the HTTPS connections to WSS. This is achieved
+in our `docker/nginx/conf/upstream-server-and-load-balancing.conf`:
+```sh
+# Upstream server for the web application server
+upstream server {
+  # server is included in each dynamic /etc/hosts by Docker
+  server server:3000;
+  # Load balancing could be done here, if required.
+}
+```
+
+
 
 @TODO
 startNginx.sh
@@ -898,7 +993,7 @@ docker push 192.168.1.50:5000/nginx-asv-la-soiree:latest
 ### Deployment in pre-production
 Create a `deploy-pre.yml` file for using Docker Compose to ease
 the pull and launch of your services:
-```
+```yml
 # Persistence layer: Mongo
 db:
   image: 192.168.1.50:5000/mongo-asv-la-soiree:v1.1.0
