@@ -1064,31 +1064,38 @@ docker-compose up -d
 ```
 
 ### Push to your local registry
+When your are satisfied with the development of your container, you can save
+your Docker images into your local registry for deploying them to preproduction.
+
 For Mongo:
 ```sh
-docker tag -f docker_db 192.168.1.50:5000/mongo-asv-la-soiree:v1.1.0
-docker push 192.168.1.50:5000/mongo-asv-la-soiree:v1.1.0
-docker tag -f docker_db 192.168.1.50:5000/mongo-asv-la-soiree:latest
-docker push 192.168.1.50:5000/mongo-asv-la-soiree:latest
+docker tag -f docker_db $HOST_IP_DEV:5000/mongo:v1.0.0
+docker push $HOST_IP_DEV:5000/mongo-asv-la-soiree:v1.0.0
+docker tag -f docker_db $HOST_IP_DEV:5000/mongo-asv-la-soiree:latest
+docker push $HOST_IP_DEV:5000/mongo:latest
 ```
 
 For Meteor:
 ```sh
-docker tag -f docker_server 192.168.1.50:5000/meteor-asv-la-soiree:v1.1.0
-docker push 192.168.1.50:5000/meteor-asv-la-soiree:v1.1.0
-docker tag -f docker_server 192.168.1.50:5000/meteor-asv-la-soiree:latest
-docker push 192.168.1.50:5000/meteor-asv-la-soiree:latest
+docker tag -f docker_server $HOST_IP_DEV:5000/meteor:v1.0.0
+docker push $HOST_IP_DEV:5000/meteor:v1.0.0
+docker tag -f docker_server $HOST_IP_DEV:5000/meteor:latest
+docker push $HOST_IP_DEV:5000/meteor:latest
 ```
 
 For NGinx:
 ```sh
-docker tag -f docker_front 192.168.1.50:5000/nginx-asv-la-soiree:v1.1.0
-docker push 192.168.1.50:5000/nginx-asv-la-soiree:v1.1.0
-docker tag -f docker_front 192.168.1.50:5000/nginx-asv-la-soiree:latest
-docker push 192.168.1.50:5000/nginx-asv-la-soiree:latest
+docker tag -f docker_front $HOST_IP_DEV:5000/nginx:v1.0.0
+docker push $HOST_IP_DEV:5000/nginx:v1.0.0
+docker tag -f docker_front $HOST_IP_DEV:5000/nginx:latest
+docker push $HOST_IP_DEV:5000/nginx:latest
 ```
 
 ### Deployment in pre-production
+For deploying to production, we are going to refactor our `docker/docker-compose.yml`
+a bit to avoid repetition on Docker Compose file depending on the host that
+you're tageting.
+
 Create a `deploy-pre.yml` file for using Docker Compose to ease
 the pull and launch of your services:
 ```yml
