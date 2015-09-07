@@ -1,0 +1,31 @@
+# Persistence layer: Mongo
+db:
+  build: mongo
+  log_driver: "json-file"
+  volumes:
+    - /var/db:/db
+  expose:
+    - "27017"
+# Application server: NodeJS (Meteor)
+server:
+  build: meteor
+  log_driver: "json-file"
+  environment:
+    MONGO_URL: "mongodb://db:27017"
+    MONGO_OPLOG_URL: "mongodb://db:27017/local"
+    PORT: 3000
+  volumes:
+    - /etc/meteor:/etc/meteor
+  expose:
+    - "3000"
+# Front layer, static file, SSL, proxy cache: NGinx
+front:
+  log_driver: "json-file"
+  build: nginx
+  volumes:
+    - /etc/certs:/etc/certs
+    - /var/cache:/var/cache
+    - /var/tmp:/var/tmp
+  ports:
+    - "80:80"
+    - "443:443"

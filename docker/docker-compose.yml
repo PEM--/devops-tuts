@@ -1,0 +1,24 @@
+# Persistence layer: Mongo
+db:
+  extends:
+    file: common.yml
+    service: db
+# Application server: NodeJS (Meteor)
+server:
+  extends:
+    file: common.yml
+    service: server
+  links:
+    - db
+  environment:
+    ROOT_URL: "https://192.168.1.50"
+# Front layer, static file, SSL, proxy cache: NGinx
+front:
+  extends:
+    file: common.yml
+    service: front
+  links:
+    - server
+  environment:
+    # Can be: dev, pre, prod
+    HOST_TARGET: "dev"

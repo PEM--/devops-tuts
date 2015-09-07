@@ -1,0 +1,30 @@
+# Persistence layer: Mongo
+db:
+  image: 192.168.1.50:5000/mongo:v1.0.0
+  extends:
+    file: common.yml
+    service: db
+  restart: always
+# Application server: NodeJS (Meteor)
+server:
+  image: 192.168.1.50:5000/meteor:v1.0.0
+  extends:
+    file: common.yml
+    service: server
+  links:
+    - db
+  environment:
+    ROOT_URL: "https://192.168.1.51"
+  restart: always
+# Front layer, static file, SSL, proxy cache: NGinx
+front:
+  image: 192.168.1.50:5000/nginx:v1.0.0
+  extends:
+    file: common.yml
+    service: front
+  links:
+    - server
+  environment:
+    # Can be: dev, pre, prod
+    HOST_TARGET: "pre"
+  restart: always

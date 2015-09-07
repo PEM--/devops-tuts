@@ -1096,19 +1096,84 @@ For deploying to production, we are going to refactor our `docker/docker-compose
 a bit to avoid repetition on Docker Compose file depending on the host that
 you're tageting.
 
-Create a `deploy-pre.yml` file for using Docker Compose to ease
-the pull and launch of your services:
+We create a `docker/common.yml` file which centralized value used for all hosts:
 ```yml
 # Persistence layer: Mongo
 db:
-  image: 192.168.1.50:5000/mongo-asv-la-soiree:v1.1.0
+  build: mongo
+  log_driver: "json-file"
+  volumes:
+    - /var/db:/db
+  expose:
+    - "27017"
+# Application server: NodeJS (Meteor)
+server:
+  build: meteor
+  log_driver: "json-file"
+  environment:
+    MONGO_URL: "mongodb://db:27017"
+    MONGO_OPLOG_URL: "mongodb://db:27017/local"
+    PORT: 3000
+  volumes:
+    - /etc/meteor:/etc/meteor
+  expose:
+    - "3000"
+# Front layer, static file, SSL, proxy cache: NGinx
+front:
+  log_driver: "json-file"
+  build: nginx
+  volumes:
+    - /etc/certs:/etc/certs
+    - /var/cache:/var/cache
+    - /var/tmp:/var/tmp
+  ports:
+    - "80:80"
+    - "443:443"
+```
+
+Now, we can refactor our `docker/docker-compose.yml` to only set the remaining
+Docker command required for development:
+```yml
+# Persistence layer: Mongo
+db:
+  extends:
+    file: common.yml
+    service: db
+# Application server: NodeJS (Meteor)
+server:
+  extends:
+    file: common.yml
+    service: server
+  links:
+    - db
+  environment:
+    ROOT_URL: "https://192.168.1.50"
+# Front layer, static file, SSL, proxy cache: NGinx
+front:
+  extends:
+    file: common.yml
+    service: front
+  links:
+    - server
+  environment:
+    # Can be: dev, pre, prod
+    HOST_TARGET: "dev"
+```
+
+Now for easing the deployment on the pre-production hosts, we are using our
+common configuration in a `docker/deploy-pre.yml` file that ease the pull and
+launch of your services:
+```yml
+# Persistence layer: Mongo
+db:
+  image: 192.168.1.50:5000/mongo:v1.0.0
   extends:
     file: common.yml
     service: db
   restart: always
 # Application server: NodeJS (Meteor)
 server:
-  image: 192.168.1.50:meteor-asv-la-soiree:v1.1.0
+  image: 192.168.1.50:5000/meteor:v1.0.0
   extends:
     file: common.yml
     service: server
@@ -1119,7 +1184,7 @@ server:
   restart: always
 # Front layer, static file, SSL, proxy cache: NGinx
 front:
-  image: 192.168.1.50:5000/nginx-asv-la-soiree:v1.1.0
+  image: 192.168.1.50:5000/nginx:v1.0.0
   extends:
     file: common.yml
     service: front
@@ -1131,7 +1196,7 @@ front:
   restart: always
 ```
 
-Connect Docker Machine to your preproduction host, start your services
+Connect Docker Machine to your pre-production host, start your services
 and ensure that your ReplicationSet creation is applied:
 ```sh
 eval "$(docker-machine env pre)"
