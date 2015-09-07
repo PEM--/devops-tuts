@@ -1053,8 +1053,15 @@ front:
   log_driver: "json-file"
 ```
 
-
-@TODO
+For taking this new logging configuration, just issue the following commands:
+```sh
+# This stops the current running containers
+docker-compose stop
+# This rebuild all images
+docker-compose build
+# This starts all containers
+docker-compose up -d
+```
 
 ### Push to your local registry
 For Mongo:
