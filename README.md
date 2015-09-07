@@ -142,7 +142,7 @@ each time we open a new terminal session:
 export HOST_IP_DEV='192.168.1.50'
 export HOST_IP_PRE='192.168.1.51'
 # Use preferably your FQDN (example.org)
-export HOST_IP_PROD='X.X.X.X'
+export HOST_IP_PROD='YOUR_SITE_FQDN'
 ```
 
 If you are using [Fish](http://fishshell.com/) like me, use the following content:
@@ -150,7 +150,7 @@ If you are using [Fish](http://fishshell.com/) like me, use the following conten
 set -x HOST_IP_DEV '192.168.1.50'
 set -x HOST_IP_PRE '192.168.1.51'
 # Use preferably your FQDN (example.org)
-set -x HOST_IP_PROD 'X.X.X.X'
+set -x HOST_IP_PROD 'YOUR_SITE_FQDN'
 ```
 
 This should provide an easy access to all parts of the following network architecture:
@@ -176,7 +176,7 @@ docker-machine -D create -d generic \
 
 Now, in the last session, wait for the 2 previous sessions to be blocked
 on the following repeated message
-`Daemon not responding yet: dial tcp 192.168.33.10:2376: connection refused`
+`Daemon not responding yet: dial tcp XX.XX.XX.XX:2376: connection refused`
 and issue the following command:
 ```sh
 vagrant provision
@@ -1070,8 +1070,8 @@ your Docker images into your local registry for deploying them to preproduction.
 For Mongo:
 ```sh
 docker tag -f docker_db $HOST_IP_DEV:5000/mongo:v1.0.0
-docker push $HOST_IP_DEV:5000/mongo-asv-la-soiree:v1.0.0
-docker tag -f docker_db $HOST_IP_DEV:5000/mongo-asv-la-soiree:latest
+docker push $HOST_IP_DEV:5000/mongo:v1.0.0
+docker tag -f docker_db $HOST_IP_DEV:5000/mongo:latest
 docker push $HOST_IP_DEV:5000/mongo:latest
 ```
 
@@ -1218,24 +1218,24 @@ And we publish our containers for Mongo:
 ```sh
 docker tag -f docker_db YOUR_DOCKER_HUB_LOGIN/mongo:v1.0.0
 docker push YOUR_DOCKER_HUB_LOGIN/mongo:v1.0.0
-docker tag -f docker_db YOUR_DOCKER_HUB_LOGIN/mongo-asv-la-soiree:latest
-docker push YOUR_DOCKER_HUB_LOGIN/mongo-asv-la-soiree:latest
+docker tag -f docker_db YOUR_DOCKER_HUB_LOGIN/mongo:latest
+docker push YOUR_DOCKER_HUB_LOGIN/mongo:latest
 ```
 
 For Meteor:
 ```sh
 docker tag -f docker_server YOUR_DOCKER_HUB_LOGIN/meteor:v1.0.0
 docker push YOUR_DOCKER_HUB_LOGIN/meteor:v1.0.0
-docker tag -f docker_server YOUR_DOCKER_HUB_LOGIN/meteor-asv-la-soiree:latest
-docker push YOUR_DOCKER_HUB_LOGIN/meteor-asv-la-soiree:latest
+docker tag -f docker_server YOUR_DOCKER_HUB_LOGIN/meteor:latest
+docker push YOUR_DOCKER_HUB_LOGIN/meteor:latest
 ```
 
 For NGinx:
 ```sh
 docker tag -f docker_front YOUR_DOCKER_HUB_LOGIN/nginx:v1.0.0
 docker push YOUR_DOCKER_HUB_LOGIN/nginx:v1.0.0
-docker tag -f docker_front YOUR_DOCKER_HUB_LOGIN/nginx-asv-la-soiree:latest
-docker push YOUR_DOCKER_HUB_LOGIN/nginx-asv-la-soiree:latest
+docker tag -f docker_front YOUR_DOCKER_HUB_LOGIN/nginx:latest
+docker push YOUR_DOCKER_HUB_LOGIN/nginx:latest
 ```
 
 ### Deployment in production
@@ -1259,7 +1259,7 @@ server:
   links:
     - db
   environment:
-    ROOT_URL: "https://www.asv-la-soiree.com"
+    ROOT_URL: "https:/YOUR_SITE_FQDN"
   restart: always
 # Front layer, static file, SSL, proxy cache: NGinx
 front:
@@ -1289,6 +1289,7 @@ docker-compose -f deploy-prod.yml run --rm db mongo db:27017/admin --quiet --eva
 ### Links
 Sources for this tutorial:
 * [Github's repository](https://github.com/PEM--/devops-tuts)
+* [Blog article](http://pem-musing.blogspot.fr/2015/09/meteor-devops-on-osx-with-docker-set.html)
 
 Informations used for this tutorial:
 * [Homebrew](http://brew.sh/)
