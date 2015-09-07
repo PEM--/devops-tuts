@@ -1,0 +1,30 @@
+# Persistence layer: Mongo
+db:
+  image: YOUR_DOCKER_HUB_LOGIN/mongo:v1.0.0
+  extends:
+    file: common.yml
+    service: db
+  restart: always
+# Application server: NodeJS (Meteor)
+server:
+  image: YOUR_DOCKER_HUB_LOGIN/meteor:v1.0.0
+  extends:
+    file: common.yml
+    service: server
+  links:
+    - db
+  environment:
+    ROOT_URL: "https://www.asv-la-soiree.com"
+  restart: always
+# Front layer, static file, SSL, proxy cache: NGinx
+front:
+  image: YOUR_DOCKER_HUB_LOGIN/nginx:v1.0.0
+  extends:
+    file: common.yml
+    service: front
+  links:
+    - server
+  environment:
+    # Can be: dev, pre, prod
+    HOST_TARGET: "prod"
+  restart: always

@@ -361,7 +361,7 @@ picture the configuration of small ReplicaSet for making OPLOG available:
 ```Dockerfile
 # Based on: https://github.com/docker-library/mongo/blob/d5aca073ca71a7023e0d4193bd14642c6950d454/3.0/Dockerfile
 FROM debian:wheezy
-MAINTAINER Pierre-Eric Marchandet <pemarchandet@gmail.com>
+MAINTAINER Pierre-Eric Marchandet <YOUR_DOCKER_HUB_LOGIN@gmail.com>
 
 # Update system
 ENV DEBIAN_FRONTEND noninteractive
@@ -493,7 +493,7 @@ our `docker/meteor/Dockerfile`:
 ```Dockerfile
 # Based on: https://github.com/joyent/docker-node/blob/master/0.10/wheezy/Dockerfile
 FROM debian:wheezy
-MAINTAINER Pierre-Eric Marchandet <pemarchandet@gmail.com>
+MAINTAINER Pierre-Eric Marchandet <YOUR_DOCKER_HUB_LOGIN@gmail.com>
 
 # Update system
 ENV DEBIAN_FRONTEND noninteractive
@@ -614,7 +614,7 @@ It's up to our front container to be created. Let's start with our `docker/nginx
 ```Dockerfile
 # Based on: https://github.com/nginxinc/docker-nginx/blob/master/Dockerfile
 FROM debian:wheezy
-MAINTAINER Pierre-Eric Marchandet <pemarchandet@gmail.com>
+MAINTAINER Pierre-Eric Marchandet <YOUR_DOCKER_HUB_LOGIN@gmail.com>
 
 # Add NGinx official repository
 RUN apt-key adv --keyserver pgp.mit.edu --recv-keys 573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62
@@ -1216,29 +1216,65 @@ eval "$(docker-machine env dev)"
 
 And we publish our containers for Mongo:
 ```sh
-docker tag -f docker_db pemarchandet/mongo-asv-la-soiree:v1.1.0
-docker push pemarchandet/mongo-asv-la-soiree:v1.1.0
-docker tag -f docker_db pemarchandet/mongo-asv-la-soiree:latest
-docker push pemarchandet/mongo-asv-la-soiree:latest
+docker tag -f docker_db YOUR_DOCKER_HUB_LOGIN/mongo:v1.0.0
+docker push YOUR_DOCKER_HUB_LOGIN/mongo:v1.0.0
+docker tag -f docker_db YOUR_DOCKER_HUB_LOGIN/mongo-asv-la-soiree:latest
+docker push YOUR_DOCKER_HUB_LOGIN/mongo-asv-la-soiree:latest
 ```
 
 For Meteor:
 ```sh
-docker tag -f docker_server pemarchandet/meteor-asv-la-soiree:v1.1.0
-docker push pemarchandet/meteor-asv-la-soiree:v1.1.0
-docker tag -f docker_server pemarchandet/meteor-asv-la-soiree:latest
-docker push pemarchandet/meteor-asv-la-soiree:latest
+docker tag -f docker_server YOUR_DOCKER_HUB_LOGIN/meteor:v1.0.0
+docker push YOUR_DOCKER_HUB_LOGIN/meteor:v1.0.0
+docker tag -f docker_server YOUR_DOCKER_HUB_LOGIN/meteor-asv-la-soiree:latest
+docker push YOUR_DOCKER_HUB_LOGIN/meteor-asv-la-soiree:latest
 ```
 
 For NGinx:
 ```sh
-docker tag -f docker_front pemarchandet/nginx-asv-la-soiree:v1.1.0
-docker push pemarchandet/nginx-asv-la-soiree:v1.1.0
-docker tag -f docker_front pemarchandet/nginx-asv-la-soiree:latest
-docker push pemarchandet/nginx-asv-la-soiree:latest
+docker tag -f docker_front YOUR_DOCKER_HUB_LOGIN/nginx:v1.0.0
+docker push YOUR_DOCKER_HUB_LOGIN/nginx:v1.0.0
+docker tag -f docker_front YOUR_DOCKER_HUB_LOGIN/nginx-asv-la-soiree:latest
+docker push YOUR_DOCKER_HUB_LOGIN/nginx-asv-la-soiree:latest
 ```
 
 # Deployment in production
+Like the deployment in pre-production, we are leveraging the capabilities
+of Docker Compose for easing the pulling and running of Docker containers.
+For this, we create a `docker/deploy-prod.yml` file:
+```yml
+# Persistence layer: Mongo
+db:
+  image: YOUR_DOCKER_HUB_LOGIN/mongo:v1.0.0
+  extends:
+    file: common.yml
+    service: db
+  restart: always
+# Application server: NodeJS (Meteor)
+server:
+  image: YOUR_DOCKER_HUB_LOGIN/meteor:v1.0.0
+  extends:
+    file: common.yml
+    service: server
+  links:
+    - db
+  environment:
+    ROOT_URL: "https://www.asv-la-soiree.com"
+  restart: always
+# Front layer, static file, SSL, proxy cache: NGinx
+front:
+  image: YOUR_DOCKER_HUB_LOGIN/nginx:v1.0.0
+  extends:
+    file: common.yml
+    service: front
+  links:
+    - server
+  environment:
+    # Can be: dev, pre, prod
+    HOST_TARGET: "prod"
+  restart: always
+```
+
 Before running everything in production, we must pull our images. Behind the
 scene so that our users doesn't notice the changes, then we will stop our current
 running containers, launch our new ones and finish by a ReplicaSet configuration.
