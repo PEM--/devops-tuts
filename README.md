@@ -876,7 +876,7 @@ keepalive_timeout 300; # up from 75 secs default
 ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
 # Ciphers set to best allow protection from Beast, while providing forwarding secrecy, as defined by Mozilla (Intermediate Set)
 # - https://wiki.mozilla.org/Security/Server_Side_TLS#Nginx
-ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:AES:CAMELLIA:DES-CBC3-SHA:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!aECDH:!EDH-DSS-DES-CBC3-SHA:!EDH-RSA-DES-CBC3-SHA:!KRB5-DES-CBC3-SHA;
+ssl_ciphers ECDH+AESGCM:ECDH+AES256:ECDH+AES128:DES-CBC3-SHA:!ADH:!AECDH:!MD5;
 ssl_prefer_server_ciphers on;
 ssl_session_cache shared:SSL:10m;
 # OCSP stapling...
@@ -1016,14 +1016,15 @@ in `/var/lib/docker/containers/[CONTAINER ID]/[CONTAINER_ID]-json.log`:
 # Persistence layer: Mongo
 db:
   build: mongo
+  log_driver: "json-file"
   volumes:
     - /var/db:/db
   expose:
     - "27017"
-  log_driver: "json-file"
 # Application server: NodeJS (Meteor)
 server:
   build: meteor
+  log_driver: "json-file"
   environment:
     MONGO_URL: "mongodb://db:27017"
     MONGO_OPLOG_URL: "mongodb://db:27017/local"
@@ -1033,10 +1034,10 @@ server:
     - /etc/meteor:/etc/meteor
   expose:
     - "3000"
-  log_driver: "json-file"
 # Front layer, static file, SSL, proxy cache: NGinx
 front:
   build: nginx
+  log_driver: "json-file"
   links:
     - server
   environment:
@@ -1052,11 +1053,8 @@ front:
   log_driver: "json-file"
 ```
 
-@TODO
 
-### Mongo backups
 @TODO
-
 
 ### Push to your local registry
 For Mongo:
