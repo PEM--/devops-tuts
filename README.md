@@ -698,8 +698,8 @@ production host, you require SSL certificates from a certificate authority
 know by the browser vendors. For the development and the preproduction hosts,
 we can use self signed certificate that we create on our hosts:
 ```sh
-ssh root@$HOST_IP_DEV "mkdir -p /etc/certs; openssl req -nodes -new -x509 -keyout /etc/certs/server.key -out /etc/certs/server.cert -subj '/C=FR/ST=Paris/L=Paris/CN=$HOST_IP_DEV'"
-ssh root@$HOST_IP_PRE "mkdir -p /etc/certs; openssl req -nodes -new -x509 -keyout /etc/certs/server.key -out /etc/certs/server.cert -subj '/C=FR/ST=Paris/L=Paris/CN=$HOST_IP_PRE'"
+ssh root@$HOST_IP_DEV "mkdir -p /etc/certs; openssl req -nodes -new -x509 -keyout /etc/certs/server.key -out /etc/certs/server.crt -subj '/C=FR/ST=Paris/L=Paris/CN=$HOST_IP_DEV'"
+ssh root@$HOST_IP_PRE "mkdir -p /etc/certs; openssl req -nodes -new -x509 -keyout /etc/certs/server.key -out /etc/certs/server.crt -subj '/C=FR/ST=Paris/L=Paris/CN=$HOST_IP_PRE'"
 ```
 
 We need 2 additional volumes exposed on each host, one for NGinx's cache and
@@ -859,7 +859,7 @@ redirected to HTTPS via URL rewriting technic. Our SSL configuration
 # SSL configuration
 ssl on;
 # SSL key paths
-ssl_certificate /etc/certs/server.cert;
+ssl_certificate /etc/certs/server.crt;
 ssl_certificate_key /etc/certs/server.key;
 # Trusted cert must be made up of your intermediate certificate followed by root certificate
 # ssl_trusted_certificate /path/to/ca.crt;
