@@ -1207,7 +1207,7 @@ docker-compose -f deploy-pre.yml run --rm db mongo db:27017/admin --quiet --eval
 Once you are satisfied with you containers, it's time to make them
 available to your production server.
 
-#### Push to Docker Hub
+### Push to Docker Hub
 Now we go back on our development host for publishing these container on
 the public Docker Hub:
 ```sh
@@ -1238,7 +1238,7 @@ docker tag -f docker_front YOUR_DOCKER_HUB_LOGIN/nginx-asv-la-soiree:latest
 docker push YOUR_DOCKER_HUB_LOGIN/nginx-asv-la-soiree:latest
 ```
 
-# Deployment in production
+### Deployment in production
 Like the deployment in pre-production, we are leveraging the capabilities
 of Docker Compose for easing the pulling and running of Docker containers.
 For this, we create a `docker/deploy-prod.yml` file:
