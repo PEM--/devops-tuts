@@ -84,7 +84,6 @@ hosts = {
   "dev" => "192.168.1.50",
   "pre" => "192.168.1.51"
 }
-
 Vagrant.configure(2) do |config|
   config.vm.box = "ubuntu/vivid64"
   config.ssh.insert_key = false
@@ -1259,7 +1258,7 @@ server:
   links:
     - db
   environment:
-    ROOT_URL: "https:/YOUR_SITE_FQDN"
+    ROOT_URL: "https://YOUR_SITE_FQDN"
   restart: always
 # Front layer, static file, SSL, proxy cache: NGinx
 front:

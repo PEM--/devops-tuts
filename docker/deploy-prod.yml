@@ -14,7 +14,7 @@ server:
   links:
     - db
   environment:
-    ROOT_URL: "https://www.asv-la-soiree.com"
+    ROOT_URL: "https://YOUR_SITE_FQDN"
   restart: always
 # Front layer, static file, SSL, proxy cache: NGinx
 front:
