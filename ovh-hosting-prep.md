@@ -44,7 +44,7 @@
 
 
 
-
+```
 $TTL 3600
 @	IN SOA dns200.anycast.me. tech.ovh.net. (2015092201 86400 3600 3600000 300)
            IN NS     ns200.anycast.me.
@@ -54,7 +54,7 @@ $TTL 3600
 www        IN A      51.254.128.22
 www        IN TXT    "3|welcome"
 www        IN TXT    "l|fr"
-
+```
 
 
 ## Buying the certificate
