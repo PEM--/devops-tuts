@@ -819,20 +819,20 @@ Depending on which host launches NGinx, we need a method to set a proper
 sever name. For this, we create 3 files:
 
 * `docker/nginx/host-specific/servername-dev.conf`:
-  ```sh
-  # Server name
-  server_name  192.168.1.50;
-  ```
+```sh
+# Server name
+server_name  192.168.1.50;
+```
 * `docker/nginx/host-specific/servername-pre.conf`:
-  ```sh
-  # Server name
-  server_name  192.168.1.51;
-  ```
+```sh
+# Server name
+server_name  192.168.1.51;
+```
 * `docker/nginx/host-specific/servername-prod.conf`:
-  ```sh
-  # Server name (the real FQDN of your production server)
-  server_name  example.org;
-  ```
+```sh
+# Server name (the real FQDN of your production server)
+server_name  example.org;
+```
 
 For accessing the static files exposed over HTTP, we use simply declare the root
 of the front and we use a `@fallback` function in case no file has been found.
