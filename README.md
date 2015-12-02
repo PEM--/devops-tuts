@@ -1288,7 +1288,7 @@ docker-compose -f deploy-prod.yml run --rm db mongo db:27017/admin --quiet --eva
 ```
 
 ### FAQ
-#### When I use [tap:i18n](https://github.com/TAPevents/tap-i18n/) my translation file are part of the bundle?
+#### When I use [tap:i18n](https://github.com/TAPevents/tap-i18n/) my translation file are not available?
 Simply add [TAPi18n Bundler](https://github.com/TAPevents/i18n-bundler) to your
 Meteor project.
 
