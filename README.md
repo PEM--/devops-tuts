@@ -19,14 +19,16 @@ the complete list of versions used in this tutorial:
 * OSX 10.10.5 as the development platform
 * Ubuntu 15.04 as Docker host system
 * Debian Jessie 7 with latest updates as Docker container system
-* Docker 1.8.1
+* Docker 1.9.1
 * Docker Registry 2
-* Docker Machine 0.4.1
-* Docker Compose 1.4.0
-* VirtualBox 5.0.2
+* Docker Machine 0.5.1
+* Docker Compose 1.5.1
+* VirtualBox 5.0.10
+* Vagrant 1.7.4
 * Meteor 1.1.0.3
-* NGinx 1.9.4-1
-* NodeJS 0.10.40
+* NGinx 1.8.0-1
+* NodeJS 0.10.41
+* NPM 3.3.12
 * Mongo 3.0.6 - WiredTiger
 
 ![Software architecture](https://raw.githubusercontent.com/PEM--/devops-tuts/master/doc/software_architecture.png)
@@ -462,7 +464,7 @@ docker-compose up -d db
 And once it's running, initialize a single instance ReplicaSet for making
 Oplog tailing available:
 ```sh
-docker-compose run db mongo db:27017/admin --quiet --eval "rs.initiate(); rs.conf();"
+docker-compose run --rm db mongo db:27017/admin --quiet --eval "rs.initiate(); rs.conf();"
 ```
 
 Some useful commands while developing a container:
@@ -511,15 +513,15 @@ RUN apt-get update && \
 
 # Install NodeJS
 ENV NODE_VERSION 0.10.40
-ENV NPM_VERSION 2.13.3
+ENV NPM_VERSION 3.3.12
 RUN curl -sSLO "https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION-linux-x64.tar.gz" && \
     tar -xzf "node-v$NODE_VERSION-linux-x64.tar.gz" -C /usr/local --strip-components=1 && \
     rm "node-v$NODE_VERSION-linux-x64.tar.gz" && \
     npm install -g npm@"$NPM_VERSION" && \
     npm cache clear
 
-# Add PM2 for process management and PhantomJS
-RUN npm install -g pm2 phantomjs
+# Add PM2 for process management
+RUN npm install -g pm2
 
 # Import sources
 COPY bundle /app
@@ -546,9 +548,9 @@ Now copy your `settings.json` files on each hosts using a regular SCP. Mine
 are slightly different depending on the target where I deploy my Meteor apps.
 ```sh
 # Just an exammple, adapt it to suit your needs
-scp ../app/development.json root@$HOST_IP_DEV:/etc/meteor/settings.json
-scp ../app/development.json root@$HOST_IP_DEV:/etc/meteor/settings.json
-scp ../app/production.json root@$HOST_IP_DEV:/etc/meteor/settings.json
+scp ../app/dev.json root@$HOST_IP_DEV:/etc/meteor/settings.json
+scp ../app/dev.json root@$HOST_IP_DEV:/etc/meteor/settings.json
+scp ../app/prod.json root@$HOST_IP_DEV:/etc/meteor/settings.json
 ```
 
 > Note that we do not include our secrets, nor in our code repository by
@@ -617,8 +619,8 @@ MAINTAINER Pierre-Eric Marchandet <YOUR_DOCKER_HUB_LOGIN@gmail.com>
 
 # Add NGinx official repository
 RUN apt-key adv --keyserver pgp.mit.edu --recv-keys 573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62
-RUN echo "deb http://nginx.org/packages/mainline/debian/ wheezy nginx" >> /etc/apt/sources.list
-ENV NGINX_VERSION 1.9.4-1~wheezy
+RUN echo "deb http://nginx.org/packages/debian/ wheezy nginx" >> /etc/apt/sources.list
+ENV NGINX_VERSION 1.8.0-1~wheezy
 
 # Update system
 ENV DEBIAN_FRONTEND noninteractive
@@ -1284,6 +1286,11 @@ docker stop "$(docker ps -a -q)"
 docker-compose -f deploy-prod.yml up -d
 docker-compose -f deploy-prod.yml run --rm db mongo db:27017/admin --quiet --eval "rs.initiate(); rs.conf();"
 ```
+
+### FAQ
+#### When I use [tap:i18n](https://github.com/TAPevents/tap-i18n/) my translation file are part of the bundle?
+Simply add [TAPi18n Bundler](https://github.com/TAPevents/i18n-bundler) to your
+Meteor project.
 
 ### Links
 Sources for this tutorial:

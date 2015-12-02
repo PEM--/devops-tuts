@@ -19,18 +19,17 @@ RUN apt-get update && \
 
 # Install NodeJS
 ENV NODE_VERSION 0.10.40
-ENV NPM_VERSION 2.13.3
+ENV NPM_VERSION 3.3.12
 RUN curl -sSLO "https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION-linux-x64.tar.gz" && \
     tar -xzf "node-v$NODE_VERSION-linux-x64.tar.gz" -C /usr/local --strip-components=1 && \
     rm "node-v$NODE_VERSION-linux-x64.tar.gz" && \
     npm install -g npm@"$NPM_VERSION" && \
     npm cache clear
 
-# Add PM2 for process management and restart
-RUN npm install -g pm2 phantomjs
+# Add PM2 for process management
+RUN npm install -g pm2
 
 # Import sources
-RUN mkdir /app
 COPY bundle /app
 
 # Install Meteor's dependencies
@@ -38,5 +37,5 @@ WORKDIR /app
 RUN (cd programs/server && npm install)
 
 # Launch application
-COPY startMeteor.sh /app/
+COPY startMeteor.sh /app/startMeteor.sh
 CMD ["./startMeteor.sh"]
